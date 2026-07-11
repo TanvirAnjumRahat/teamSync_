@@ -259,7 +259,7 @@ router.put('/workspaces/:workspaceId', authenticate, async (req: any, res) => {
 });
 
 // Invite a member to a workspace
-router.post('/workspaces/:workspaceId/invite', authenticate, async (req: any, res) => {
+router.post('/workspaces/:workspaceId/add-member', authenticate, async (req: any, res) => {
   try {
     const { workspaceId } = req.params;
     const { email, role } = req.body;

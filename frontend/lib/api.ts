@@ -303,7 +303,7 @@ export class ApiClient {
 
   // ===== INVITATIONS =====
   static async inviteMember(workspaceId: string, data: { email: string; role: string; projectId?: string }) {
-    return this.request(`/workspaces/${workspaceId}/invite`, {
+    return this.request(`/workspaces/${workspaceId}/add-member`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
