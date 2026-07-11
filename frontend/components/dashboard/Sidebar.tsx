@@ -5,7 +5,12 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
@@ -79,7 +84,22 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 border-r border-gray-800 h-screen sticky top-0 overflow-y-auto flex flex-col">
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar Content */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 border-r border-gray-800 h-screen 
+        transform transition-transform duration-200 ease-in-out flex flex-col
+        md:relative md:translate-x-0
+        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+      `}>
       {/* Logo */}
       <div className="p-4 border-b border-gray-800">
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -101,6 +121,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 isActive
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
@@ -122,6 +143,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 isActive
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
@@ -158,5 +180,6 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

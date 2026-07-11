@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { TopNavbar } from './TopNavbar';
@@ -13,6 +13,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Only check for authentication
   useEffect(() => {
@@ -38,10 +39,13 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopNavbar />
-        <main className="flex-1 overflow-y-auto bg-gray-900 p-6">
+      <Sidebar 
+        isOpen={isMobileSidebarOpen} 
+        onClose={() => setIsMobileSidebarOpen(false)} 
+      />
+      <div className="flex-1 flex flex-col overflow-hidden w-full max-w-full">
+        <TopNavbar onMenuClick={() => setIsMobileSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto bg-gray-900 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

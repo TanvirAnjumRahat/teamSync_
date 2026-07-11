@@ -8,7 +8,11 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import ApiClient from '@/lib/api';
 
-export function TopNavbar() {
+interface TopNavbarProps {
+  onMenuClick?: () => void;
+}
+
+export function TopNavbar({ onMenuClick }: TopNavbarProps) {
   const { user } = useAuth();
   const { workspaces, currentWorkspace, switchWorkspace, createWorkspace } = useWorkspace();
   const router = useRouter();
@@ -84,14 +88,23 @@ export function TopNavbar() {
     <>
       <header className="bg-gray-900 border-b border-gray-800 h-16 flex items-center px-4 sticky top-0 z-40">
         <div className="flex-1 flex items-center justify-between">
-          {/* Left: Workspace Selector */}
-          <div className="flex items-center gap-3">
+          {/* Left: Hamburger & Workspace Selector */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={onMenuClick}
+              className="md:hidden text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
             <div className="relative">
               <button
                 onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
                 className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-sm transition min-w-[180px]"
               >
-                <span className="font-medium truncate">
+                <span className="font-medium truncate max-w-[100px] sm:max-w-none">
                   {currentWorkspace?.name || (workspaces.length > 0 ? 'Select Workspace' : 'No Workspace')}
                 </span>
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,9 +175,9 @@ export function TopNavbar() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             {((pathname === '/tasks' || pathname === '/projects') || (pathname?.startsWith('/workspaces') && (pathname?.endsWith('/tasks') || pathname?.endsWith('/projects')))) && (
-              <div className="w-48 sm:w-64 mr-2">
+              <div className="w-24 sm:w-48 lg:w-64 mr-1 sm:mr-2">
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +242,9 @@ export function TopNavbar() {
                   />
                 ) : (
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    <span className="text-white font-bold text-sm">
+                      {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </span>
                   </div>
                 )}
               </button>
