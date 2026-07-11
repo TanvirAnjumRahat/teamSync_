@@ -164,13 +164,13 @@ router.post('/workspaces', authenticate, async (req: any, res) => {
 
     const workspaceRef = await db.collection('workspaces').add(workspaceData);
 
-    await db.collection('users').doc(userId).update({
+    await db.collection('users').doc(userId).set({
       [`workspaces.${workspaceRef.id}`]: {
         role: 'OWNER',
         joinedAt: new Date(),
         invitedBy: userId,
       }
-    });
+    }, { merge: true });
 
     res.json({
       success: true,
@@ -446,13 +446,13 @@ router.post('/invitations/:token/accept', authenticate, async (req: any, res) =>
     }
 
     // 3. Add workspace to user's workspaces list
-    await db.collection('users').doc(userId).update({
+    await db.collection('users').doc(userId).set({
       [`workspaces.${inviteData.workspaceId}`]: {
         role: inviteData.role,
         joinedAt: new Date(),
         invitedBy: inviteData.invitedBy
       }
-    });
+    }, { merge: true });
 
     // 4. Log JOIN activity in workspace_activity
     await db.collection('workspace_activity').add({
