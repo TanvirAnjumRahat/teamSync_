@@ -5,7 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query } from 'firebase/firestore';
+import ApiClient from '@/lib/api';
 
 interface Issue {
   id: string;
@@ -101,20 +103,11 @@ export default function IssuesPage() {
     setError('');
 
     try {
-      const method = editingId ? 'PUT' : 'POST';
-      const endpoint = editingId ? `/api/issues/${editingId}` : '/api/issues';
-      const token = await auth.currentUser?.getIdToken();
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) throw new Error('Failed to save issue');
+      if (editingId) {
+        await ApiClient.updateIssue(editingId, formData);
+      } else {
+        await ApiClient.createIssue(formData);
+      }
 
       setSuccess(editingId ? 'Issue updated!' : 'Issue created!');
       setFormData({
@@ -147,15 +140,8 @@ export default function IssuesPage() {
   };
 
   const handleDelete = async (issueId: string) => {
-    const token = await auth.currentUser?.getIdToken();
-
     try {
-      const response = await fetch(`/api/issues/${issueId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to delete issue');
+      await ApiClient.deleteIssue(issueId);
 
       setSuccess('Issue deleted!');
       setDeleteConfirm(null);
@@ -164,22 +150,9 @@ export default function IssuesPage() {
       setError(err instanceof Error ? err.message : 'Failed to delete issue');
       setDeleteConfirm(null);
     }
-  };
-
   const handleStatusChange = async (issueId: string, newStatus: Issue['status']) => {
-    const token = await auth.currentUser?.getIdToken();
-
     try {
-      const response = await fetch(`/api/issues/${issueId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update status');
+      await ApiClient.updateIssue(issueId, { status: newStatus });
       setSuccess('Status updated!');
       setTimeout(() => setSuccess(''), 2000);
     } catch (err) {

@@ -5,7 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import ApiClient from '@/lib/api';
 
 interface Project {
   id: string;
@@ -99,26 +101,18 @@ export default function ProjectsPage() {
     setError('');
 
     try {
-      const method = editingId ? 'PUT' : 'POST';
-      const endpoint = editingId ? `/api/projects/${editingId}` : '/api/projects';
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        icon: formData.icon,
+        color: formData.color,
+      };
 
-      const token = await auth.currentUser?.getIdToken();
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          icon: formData.icon,
-          color: formData.color,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save project');
+      if (editingId) {
+        await ApiClient.updateProject(editingId, payload);
+      } else {
+        await ApiClient.createUserProject(payload);
+      }
 
       setSuccess(editingId ? 'Project updated!' : 'Project created!');
       setFormData({ name: '', description: '', icon: '📁', color: '#3b82f6' });
@@ -144,15 +138,8 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (projectId: string) => {
-    const token = await auth.currentUser?.getIdToken();
-
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to delete project');
+      await ApiClient.deleteProject(projectId);
 
       setSuccess('Project deleted!');
       setDeleteConfirm(null);
@@ -164,15 +151,8 @@ export default function ProjectsPage() {
   };
 
   const handleArchive = async (projectId: string) => {
-    const token = await auth.currentUser?.getIdToken();
-
     try {
-      const response = await fetch(`/api/projects/${projectId}/archive`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to archive project');
+      await ApiClient.archiveProject(projectId);
 
       setSuccess('Project archived!');
       setTimeout(() => setSuccess(''), 3000);

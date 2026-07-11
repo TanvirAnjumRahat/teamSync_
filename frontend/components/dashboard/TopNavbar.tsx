@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import ApiClient from '@/lib/api';
 
 export function TopNavbar() {
   const { user } = useAuth();
@@ -56,15 +57,11 @@ export function TopNavbar() {
     setIsInviting(true);
     setInviteStatus(null);
     try {
-      const response = await fetch(`http://localhost:5002/api/workspaces/${currentWorkspace.id}/invite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user?.getIdToken()}`
-        },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole })
+      const data = await ApiClient.inviteMember(currentWorkspace.id, { 
+        email: inviteEmail, 
+        role: inviteRole 
       });
-      const data = await response.json();
+      
       
       if (data.success) {
         setInviteStatus({ type: 'success', msg: `Invitation sent to ${inviteEmail}` });

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { TaskPriority } from '@/types';
+import ApiClient from '@/lib/api';
 
 interface TaskFormProps {
   onSuccess?: () => void;
@@ -38,24 +39,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/ai/analyze-task', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-        }),
-      });
+      const data = await ApiClient.analyzeTask(formData.title, formData.description);
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI analysis');
-      }
-
-      const data = await response.json();
-      if (data.success) {
+      if (data.success && data.data) {
         setAiSuggestions({
           summary: data.data.summary,
           suggestedPriority: data.data.suggestedPriority,

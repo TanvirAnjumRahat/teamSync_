@@ -157,6 +157,13 @@ export class ApiClient {
     });
   }
 
+  static async createUserProject(data: any) {
+    return this.request('/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   static async getProject(projectId: string) {
     return this.request(`/projects/${projectId}`);
   }
@@ -165,6 +172,12 @@ export class ApiClient {
     return this.request(`/projects/${projectId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  }
+
+  static async archiveProject(projectId: string) {
+    return this.request(`/projects/${projectId}/archive`, {
+      method: 'PATCH',
     });
   }
 
@@ -265,6 +278,27 @@ export class ApiClient {
   // ===== DASHBOARD =====
   static async getDashboardSummary() {
     return this.request('/dashboard/summary');
+  }
+
+  // ===== ISSUES =====
+  static async createIssue(data: any) {
+    return this.request('/issues', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateIssue(issueId: string, data: any) {
+    return this.request(`/issues/${issueId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteIssue(issueId: string) {
+    return this.request(`/issues/${issueId}`, {
+      method: 'DELETE',
+    });
   }
 
   // ===== INVITATIONS =====
