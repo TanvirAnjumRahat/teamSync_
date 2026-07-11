@@ -1,0 +1,103 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #000000 !important;
+  color: #f4f4f5 !important;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Sleek Pure Black Theme Overrides */
+.bg-gray-900 {
+  background-color: #000000 !important;
+}
+
+.bg-gray-800 {
+  background-color: #09090b !important;
+}
+
+.bg-gray-850 {
+  background-color: #121215 !important;
+}
+
+.bg-gray-950 {
+  background-color: #020202 !important;
+}
+
+/* border overrides */
+.border-gray-800 {
+  border-color: #18181b !important;
+}
+
+.border-gray-700 {
+  border-color: #27272a !important;
+}
+
+/* Card hover highlights */
+.hover\:border-gray-700:hover {
+  border-color: #3f3f46 !important;
+}
+
+.hover\:bg-gray-750:hover {
+  background-color: #18181b !important;
+}
+
+.hover\:bg-gray-700:hover {
+  background-color: #1c1c20 !important;
+}
+
+/* Left sidebar premium styling */
+.bg-gray-900.border-r {
+  background-color: #060608 !important;
+  border-right-color: #18181b !important;
+}
+
+/* Header premium styling */
+header.bg-gray-900 {
+  background-color: #060608 !important;
+  border-bottom-color: #18181b !important;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===== HELPER FUNCTIONS =====
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUser(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return user != null && user.role == 'ADMIN';
+    }
+    
+    function isProjectOwner(projectId) {
+      let project = get(/databases/$(database)/documents/projects/$(projectId)).data;
+      return project != null && project.ownerId == request.auth.uid;
+    }
+    
+    function isProjectMember(projectId) {
+      let project = get(/databases/$(database)/documents/projects/$(projectId)).data;
+      return project != null && 
+             project.members != null && 
+             request.auth.uid in project.members;
+    }
+    
+    function hasProjectAccess(projectId) {
+      return isProjectOwner(projectId) || 
+             isProjectMember(projectId) || 
+             isAdmin();
+    }
+    
+    // ===== USERS COLLECTION =====
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isUser(userId) || isAdmin());
+      allow create: if isUser(userId) && 
+                    request.resource.data.id == userId &&
+                    request.resource.data.email == request.auth.token.email;
+      allow update: if isUser(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ===== PROJECTS COLLECTION =====
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() && hasProjectAccess(projectId);
+      
+      allow create: if isAuthenticated() && 
+                    request.resource.data.ownerId == request.auth.uid &&
+                    request.resource.data.createdAt == request.time;
+      
+      allow update: if isAuthenticated() && 
+                    (isProjectOwner(projectId) || isAdmin());
+      
+      allow delete: if isAuthenticated() && 
+                    (isProjectOwner(projectId) || isAdmin());
+      
+      // ===== TASKS SUBCOLLECTION =====
+      match /tasks/{taskId} {
+        allow read: if isAuthenticated() && hasProjectAccess(projectId);
+        
+        allow create: if isAuthenticated() && 
+                      hasProjectAccess(projectId) &&
+                      request.resource.data.projectId == projectId &&
+                      request.resource.data.createdById == request.auth.uid;
+        
+        allow update: if isAuthenticated() && hasProjectAccess(projectId) && (
+          (resource.data.createdById == request.auth.uid && 
+           request.resource.data.assigneeId == resource.data.assigneeId) ||
+          (resource.data.assigneeId == request.auth.uid && 
+           request.resource.data.diff(resource.data).affectedKeys.hasOnly(['status', 'updatedAt'])) ||
+          isAdmin()
+        );
+        
+        allow delete: if isAuthenticated() && 
+                      (resource.data.createdById == request.auth.uid || isAdmin());
+      }
+      
+      // ===== COMMENTS SUBCOLLECTION =====
+      match /comments/{commentId} {
+        allow read: if isAuthenticated() && hasProjectAccess(projectId);
+        
+        allow create: if isAuthenticated() && 
+                      hasProjectAccess(projectId) &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.createdAt == request.time;
+        
+        allow update: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+        
+        allow delete: if isAuthenticated() && 
+                      (request.resource.data.userId == request.auth.uid || isAdmin());
+      }
+    }
+    
+    // ===== STANDALONE TASKS COLLECTION =====
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && 
+                  exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+                  hasProjectAccess(resource.data.projectId);
+      
+      allow create: if isAuthenticated() && 
+                    exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+                    hasProjectAccess(resource.data.projectId) &&
+                    request.resource.data.createdById == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+                    exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+                    hasProjectAccess(resource.data.projectId) && (
+                      (resource.data.createdById == request.auth.uid) ||
+                      (resource.data.assigneeId == request.auth.uid && 
+                       request.resource.data.diff(resource.data).affectedKeys.hasOnly(['status', 'updatedAt'])) ||
+                      isAdmin()
+                    );
+      
+      allow delete: if isAuthenticated() && 
+                    (resource.data.createdById == request.auth.uid || isAdmin());
+    }
+    
+    // ===== ACTIVITY LOGS =====
+    match /activityLogs/{logId} {
+      allow read: if isAuthenticated() && 
+                  (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.timestamp == request.time;
+      allow update, delete: if false;
+    }
+    
+    // ===== NOTIFICATIONS =====
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && 
+                  request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                    request.auth.uid == resource.data.userId &&
+                    request.resource.data.diff(resource.data).affectedKeys.hasOnly(['read', 'readAt']);
+      allow delete: if isAuthenticated() && 
+                    request.auth.uid == resource.data.userId;
+    }
+    
+    // ===== DENY EVERYTHING ELSE =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
