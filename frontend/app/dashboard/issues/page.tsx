@@ -148,8 +148,10 @@ export default function IssuesPage() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete issue');
+    } finally {
       setDeleteConfirm(null);
     }
+  };
   const handleStatusChange = async (issueId: string, newStatus: Issue['status']) => {
     try {
       await ApiClient.updateIssue(issueId, { status: newStatus });
