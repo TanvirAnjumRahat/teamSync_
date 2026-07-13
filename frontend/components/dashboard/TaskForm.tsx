@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { TaskPriority } from '@/types';
 import ApiClient from '@/lib/api';
@@ -42,9 +42,10 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
       const data = await ApiClient.analyzeTask(formData.title, formData.description);
 
       if (data.success && data.data) {
+        const responseData = data.data as any;
         setAiSuggestions({
-          summary: data.data.summary,
-          suggestedPriority: data.data.suggestedPriority,
+          summary: responseData.summary,
+          suggestedPriority: responseData.suggestedPriority,
         });
       }
     } catch (err) {
